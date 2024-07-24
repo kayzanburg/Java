@@ -1,0 +1,74 @@
+DECLARE
+    v_start_time TIMESTAMP;
+    v_end_time TIMESTAMP;
+    v_insert_20000_duration INTERVAL DAY TO SECOND;
+    v_select_20000_duration INTERVAL DAY TO SECOND;
+    v_insert_100000_duration INTERVAL DAY TO SECOND;
+    v_select_100000_duration INTERVAL DAY TO SECOND;
+    v_random_number NUMBER;
+BEGIN
+    -- 20.000 rastgele sayı ekleme
+    v_start_time := SYSTIMESTAMP;
+
+    FOR i IN 1..20000 LOOP
+        INSERT INTO random_numbers (random_number)
+        VALUES (TRUNC(DBMS_RANDOM.VALUE(1, 1000000)));
+    END LOOP;
+    COMMIT;
+
+    v_end_time := SYSTIMESTAMP;
+    v_insert_20000_duration := v_end_time - v_start_time;
+
+    -- Geçici tabloyu rastgele sıralanmış 20.000 veri ile doldurma
+    EXECUTE IMMEDIATE 'INSERT INTO temp_random_numbers SELECT random_number FROM random_numbers ORDER BY DBMS_RANDOM.VALUE FETCH FIRST 20000 ROWS ONLY';
+
+    -- 20.000 rastgele sayı seçme
+    v_start_time := SYSTIMESTAMP;
+
+    FOR i IN 1..20000 LOOP
+        SELECT random_number INTO v_random_number
+        FROM (SELECT random_number FROM temp_random_numbers WHERE ROWNUM = 1);
+    END LOOP;
+
+    v_end_time := SYSTIMESTAMP;
+    v_select_20000_duration := v_end_time - v_start_time;
+
+    -- Geçici tabloyu temizleme
+    EXECUTE IMMEDIATE 'TRUNCATE TABLE temp_random_numbers';
+
+    -- 100.000 rastgele sayı ekleme
+    v_start_time := SYSTIMESTAMP;
+
+    FOR i IN 1..100000 LOOP
+        INSERT INTO random_numbers (random_number)
+        VALUES (TRUNC(DBMS_RANDOM.VALUE(1, 1000000)));
+    END LOOP;
+    COMMIT;
+
+    v_end_time := SYSTIMESTAMP;
+    v_insert_100000_duration := v_end_time - v_start_time;
+
+    -- Geçici tabloyu rastgele sıralanmış 100.000 veri ile doldurma
+    EXECUTE IMMEDIATE 'INSERT INTO temp_random_numbers SELECT random_number FROM random_numbers ORDER BY DBMS_RANDOM.VALUE FETCH FIRST 100000 ROWS ONLY';
+
+    -- 100.000 rastgele sayı seçme
+    v_start_time := SYSTIMESTAMP;
+
+    FOR i IN 1..100000 LOOP
+        SELECT random_number INTO v_random_number
+        FROM (SELECT random_number FROM temp_random_numbers WHERE ROWNUM = 1);
+    END LOOP;
+
+    v_end_time := SYSTIMESTAMP;
+    v_select_100000_duration := v_end_time - v_start_time;
+
+    -- Geçici tabloyu bırakma
+    EXECUTE IMMEDIATE 'TRUNCATE TABLE temp_random_numbers';
+
+    -- Sonuçları yazdırma
+    DBMS_OUTPUT.PUT_LINE('20.000 put/insert: ' || v_insert_20000_duration);
+    DBMS_OUTPUT.PUT_LINE('20.000 get/select: ' || v_select_20000_duration);
+    DBMS_OUTPUT.PUT_LINE('100.000 put/insert: ' || v_insert_100000_duration);
+    DBMS_OUTPUT.PUT_LINE('100.000 get/select: ' || v_select_100000_duration);
+END;
+/
