@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uygulama</title>
+</head>
+<body>
+- HOSGELDINIZ -
+<form id="register-form">
+    <div class="form-group">
+        <input type="text" id="subsc_name" name="subsc_name" placeholder="Abone Adi" />
+    </div>
+    <div class="form-group">
+        <input type="text" id="subsc_surname" name="subsc_surname" placeholder="Abone soyadi" />
+    </div>
+    <div class="form-group">
+        <input type="text" id="msisdn" name="msisdn" placeholder="Telefon Numarasi" />
+    </div>
+    <div class="form-group">
+        <input type="text" id="tariff_id" name="tariff_id" placeholder="tarife id" />
+    </div>
+    <div class="form-group">
+        <input type="text" id="start_date" name="start_date" placeholder="Başlangic tarihi" />
+    </div>
+    <div class="form-group form-button">
+        <button type="button" id="signup" class="form-submit" onclick="submitForm()">Kaydet</button>
+    </div>
+</form>
+
+<script>
+    function submitForm() {
+        const formData = {
+            subsc_name: document.getElementById('subsc_name').value,
+            subsc_surname: document.getElementById('subsc_surname').value,
+            msisdn: document.getElementById('msisdn').value,
+            tariff_id: document.getElementById('tariff_id').value,
+            start_date: document.getElementById('start_date').value
+        };
+
+        fetch('/subscribers/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+            .then(response => response.json())
+            .then(data => console.log('Success:', data))
+            .catch(error => console.error('Error:', error));
+    }
+</script>
+</body>
+</html>
